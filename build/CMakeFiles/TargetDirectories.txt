@@ -1,0 +1,3 @@
+/home/tihomir/C/magma/build/CMakeFiles/rebuild_cache.dir
+/home/tihomir/C/magma/build/CMakeFiles/edit_cache.dir
+/home/tihomir/C/magma/build/CMakeFiles/magma.dir
