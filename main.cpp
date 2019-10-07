@@ -13,25 +13,25 @@ void magma_key_expansion(uint32_t key[])
   for ( int i = 0 ; i < 8 ; i ++ )
   {
   	iter_key[i] = key[7-i];
-  	std::cout << "K" << std::dec <<i << ": " << std::hex << iter_key[i] << std::endl ;
+  	//std::cout << "K" << std::dec <<i << ": " << std::hex << iter_key[i] << std::endl ;
   }
   
   for ( int i = 8 ; i < 16 ; i ++ )
   {
   	iter_key[i] = key[15-i];
-  	std::cout << "K" << std::dec << i << ": " << std::hex << iter_key[i] << std::endl ;
+  	//std::cout << "K" << std::dec << i << ": " << std::hex << iter_key[i] << std::endl ;
   }
   
   for ( int i = 16 ; i < 24 ; i ++ )
   {
   	iter_key[i] = key[23-i];
-  	std::cout << "K" << std::dec << i << ": " << std::hex << iter_key[i] << std::endl ;
+  	//std::cout << "K" << std::dec << i << ": " << std::hex << iter_key[i] << std::endl ;
   }   
   
   for ( int i = 24 ; i < 32 ; i ++ )
   {
   	iter_key[i] = key[i-24];
-  	std::cout << "K" << std::dec << i << ": " << std::hex << iter_key[i] << std::endl ;
+  	//std::cout << "K" << std::dec << i << ": " << std::hex << iter_key[i] << std::endl ;
   }
 }
 
@@ -69,8 +69,7 @@ void magma_round(uint32_t round_key, uint32_t & a1, uint32_t & a0)
 /* Зашифрование одного блока данных */
 uint64_t magma_encrypt_block(uint32_t* key, uint64_t block)
 {
-	magma_key_expansion(key);
-    	uint32_t a0 = block % 4294967296;
+    	uint32_t a0 = block % 0x100000000;
 	uint32_t a1 = block >> 32 ;
 	uint32_t round_key;
 	//std::cout << std::hex << a1 << "||" << a0 << std::endl; 
@@ -90,14 +89,13 @@ uint64_t magma_encrypt_block(uint32_t* key, uint64_t block)
 	round_key = iter_key[31];
 	magma_round(round_key, a1, a0);
 	//std::cout << std::hex << a1 << "||" << a0 << std::endl; 
-	uint64_t out_block = ( a1 * 4294967296 ) + a0;
+	uint64_t out_block = ( a1 * 0x100000000) + a0;
 	return out_block;  
 }
 
 uint64_t magma_decrypt_block(uint32_t* key, uint64_t block)
 {
-	magma_key_expansion(key);
-    	uint32_t a0 = block % 4294967296;
+    	uint32_t a0 = block % 0x100000000;
 	uint32_t a1 = block >> 32 ;
 	uint32_t round_key;
 	//std::cout << std::hex << a1 << "||" << a0 << std::endl; 
@@ -118,11 +116,12 @@ uint64_t magma_decrypt_block(uint32_t* key, uint64_t block)
 	round_key = iter_key[0];
 	magma_round(round_key, a1, a0);
 	
-	uint64_t out_block = ( a1 * 4294967296 ) + a0;
+	uint64_t out_block = ( a1 * 0x100000000 ) + a0;
 	return out_block;
 }
 int main(int argc, char *argv[])
 {
+	//TEST_INPUT_DATA
 	uint32_t key[8];
 	key[0] = 0xfcfdfeff;
 	key[1] = 0xf8f9fafb;
@@ -132,15 +131,38 @@ int main(int argc, char *argv[])
 	key[5] = 0x77665544;
 	key[6] = 0xbbaa9988;
 	key[7] = 0xffeeddcc;
+	
 	magma_key_expansion(key);
 	
 	uint64_t block  = 0xfedcba9876543210;
-	std::cout << " Plaintext " <<  std::hex << block << std::endl;
+	
+	//TEST_OUTPUT_DATA
+	
+	uint64_t enc_result = 0x4ee901e5c2d8ca3d;
+	uint64_t dec_result = 0xfedcba9876543210;
+
+	//TESTING
+
 	uint64_t result = magma_encrypt_block(key, block);
-	std::cout << " Encrypted text " <<  std::hex << result << std::endl;
+	
+	if(enc_result == enc_result)
+	{
+		std::cout << "Encryption test: SUCCESS." << std::endl;
+	}
+	else
+	{
+		std::cout << "Encryption test: FAIL."<< std::endl;
+	}
 	
 	result = magma_decrypt_block(key, result);
-	std::cout << "Decrypted text: " << std::hex << result << std::endl;
-	
+
+	if(result == dec_result)
+	{
+		std::cout << "Decryption test: SUCCESS." << std::endl;
+	}
+	else
+	{
+		std::cout << "Decryption test: FAIL."<< std::endl;
+	}
 	return 0;     	  	
 }
