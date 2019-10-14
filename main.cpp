@@ -1,10 +1,12 @@
 #include <iostream>
 #include <stdint.h>
 #include <memory.h>
+#include <gtest/gtest.h>
 
 
 uint32_t iter_key[32]; 
 typedef uint8_t substitution_t[128];
+uint32_t key[8];
 
 
 void magma_key_expansion(uint32_t key[])
@@ -119,10 +121,22 @@ uint64_t magma_decrypt_block(uint32_t* key, uint64_t block)
 	uint64_t out_block = ( a1 * 0x100000000 ) + a0;
 	return out_block;
 }
+
+
+TEST(EncryptionTest, GOST_EncOut)
+{
+	ASSERT_EQ(0x4ee901e5c2d8ca3d, magma_encrypt_block(key, 0xfedcba9876543210));	
+}
+
+TEST(DecryptionTest, GOST_DecOut)
+{
+	ASSERT_EQ(0xfedcba9876543210, magma_decrypt_block(key, 0x4ee901e5c2d8ca3d));	
+}
+
 int main(int argc, char *argv[])
 {
 	//TEST_INPUT_DATA
-	uint32_t key[8];
+	//uint32_t key[8];
 	key[0] = 0xfcfdfeff;
 	key[1] = 0xf8f9fafb;
 	key[2] = 0xf4f5f6f7;
@@ -134,35 +148,7 @@ int main(int argc, char *argv[])
 	
 	magma_key_expansion(key);
 	
-	uint64_t block  = 0xfedcba9876543210;
+	testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 	
-	//TEST_OUTPUT_DATA
-	
-	uint64_t enc_result = 0x4ee901e5c2d8ca3d;
-	uint64_t dec_result = 0xfedcba9876543210;
-
-	//TESTING
-
-	uint64_t result = magma_encrypt_block(key, block);
-	
-	if(enc_result == enc_result)
-	{
-		std::cout << "Encryption test: SUCCESS." << std::endl;
-	}
-	else
-	{
-		std::cout << "Encryption test: FAIL."<< std::endl;
-	}
-	
-	result = magma_decrypt_block(key, result);
-
-	if(result == dec_result)
-	{
-		std::cout << "Decryption test: SUCCESS." << std::endl;
-	}
-	else
-	{
-		std::cout << "Decryption test: FAIL."<< std::endl;
-	}
-	return 0;     	  	
 }
